@@ -1,3 +1,4 @@
+// MEGA 2560 slave
 #include <Wire.h> 
 
 // ESP8266 Define variables
@@ -24,7 +25,12 @@
 bool hasRequest = false;
 /////////////////////////////////////
 
-
+// LED Definations
+#define LED1 31
+#define LED2 33
+#define LED3 35
+#define LED4 37
+#define LED5 39
  
 /* Địa chỉ của DS1307 */
 const byte DS1307 = 0x68;
@@ -43,7 +49,7 @@ void setup()
 }
  
 void loop()
-{
+{  
   /* Đọc dữ liệu của DS1307 */
   readDS1307();
   /* Hiển thị thời gian ra Serial monitor */
