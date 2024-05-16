@@ -4,37 +4,48 @@
 #define BLYNK_PRINT Serial
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
-#include <SoftwareSerial.h> //Included SoftwareSerial Library
+#include <SoftwareSerial.h>  //Included SoftwareSerial Library
+SoftwareSerial s(3, 1);
 
 char auth[] = BLYNK_AUTH_TOKEN;
+// char ssid[] = "BDU-Student";
+// char pass[] = "HocHoiHieuHanh";
+
 char ssid[] = "Huu Loc ";
 char pass[] = "locdeptraivodich";
-void setup()
-{
-  Serial.begin(9600);
+
+/* Địa chỉ của DS1307 */
+const byte DS1307 = 0x68;
+/* Số byte dữ liệu sẽ đọc từ DS1307 */
+const byte NumberOfFields = 7;
+
+/* khai báo các biến thời gian */
+int second, minute, hour, day, wday, month, year;
+
+void setup() {
+  // Serial.begin(9600);
   Blynk.begin(auth, ssid, pass);
-  pinMode(LED1, OUTPUT);
-  pinMode(LED2, OUTPUT);
-  pinMode(LED3, OUTPUT);
-  pinMode(LED4, OUTPUT);
-  pinMode(LED5, OUTPUT);
- }
-  
-void loop()
-{ 
-  Blynk.run(); 
+  s.begin(9600);
 }
-BLYNK_WRITE(V1)
-{
-   digitalWrite(LED1, param.asInt());
-   digitalWrite(LED2, param.asInt());
-   digitalWrite(LED3, param.asInt());
-   digitalWrite(LED4, param.asInt());
-   digitalWrite(LED5, param.asInt());
+
+void loop() {
+  Blynk.run();
 }
-BLYNK_WRITE(V2)
-{
+
+BLYNK_WRITE(V1){
+  toggleLEDs(param.asInt());
 }
-BLYNK_WRITE(V3)
-{
+
+BLYNK_WRITE(V2) {
+}
+
+BLYNK_WRITE(V3) {
+}
+
+void toggleLEDs(int data) {
+  if (data == 1) {
+    s.write(HIGH);
+  } else {
+    s.write(LOW);
+  }
 }
