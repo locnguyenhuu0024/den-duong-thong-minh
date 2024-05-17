@@ -8,6 +8,12 @@
 #define LED4 37
 #define LED5 39
 
+// Cam bien hong ngoai
+#define HONGNGOAI 52
+
+// Cam bien anh sang
+#define ANHSANG A0
+
 /* Địa chỉ của DS1307 */
 const byte DS1307 = 0x68;
 /* Số byte dữ liệu sẽ đọc từ DS1307 */
@@ -17,9 +23,18 @@ const byte NumberOfFields = 7;
 int second, minute, hour, day, wday, month, year;
 
 // Khai báo biến chứa data doc từ nodemcu
-int masterDataLED = 0;
+int masterData = 0;
 int oldMasterTransportedButtonLED = LOW;
 int statusLEDs = LOW;
+
+// Bien Hong ngoai
+int hongNgoai = LOW;
+
+// Bien Hong ngoai
+int anhSang = 0;
+
+// Điều khiển thủ công
+bool autoMode = false;
 
 void setup() {
   Wire.begin();
@@ -27,22 +42,56 @@ void setup() {
   //setTime(2, 16, 0, 6, 10, 5, 24); // 01:36:00 CN 10-05-2024
   Serial.begin(9600);
   setUpLEDs();
+  setUpCamBien();
 }
 
 void loop() {
-  /* Đọc dữ liệu của DS1307 */
   readDS1307();
-  /* Hiển thị thời gian ra Serial monitor */
   digitalClockDisplay();
-  delay(1000);
-  masterDataLED = Serial.read();
-  if (masterDataLED == HIGH) {
-    Serial.println(masterDataLED);
-    triggerLEDs(HIGH);
-  } else if (masterDataLED == LOW) {
-    Serial.println(masterDataLED);
-    triggerLEDs(LOW);
+
+  hongNgoai = readHongNgoai();
+  anhSang = readAnhSang();
+  masterData = Serial.read();
+
+  Serial.println(masterData);
+  // Điều khiển bằng button
+  if (masterData == 3) {
+    Serial.println("Auto mode: ON");
+    autoMode = true;  // Đổi trạng thái điều khiển thủ công
+  } else if (masterData == 2) {
+    Serial.println("Auto mode: OFF");
+    autoMode = false;  // Đổi trạng thái điều khiển thủ công
   }
+
+  if (autoMode) {
+    if (anhSang > 600) {
+
+      Serial.println("Trời tối");
+      if ((hour >= 18 || hour <= 6) && minute >= 0) {
+        statusLEDs = HIGH;
+      } else {
+        if (hongNgoai == HIGH) {
+          // Serial.println("Có người");
+          statusLEDs = HIGH;  // Bật đèn khi có chuyển động
+        } else {
+          statusLEDs = LOW;
+        }
+      }
+
+    } else {
+      Serial.println("Trời sáng");
+      statusLEDs = LOW;
+    }
+  } else {
+    if (masterData == HIGH) {
+      statusLEDs = HIGH;
+    } else if (masterData == LOW) {
+      statusLEDs = LOW;
+    }
+  }
+
+  triggerLEDs(statusLEDs);
+  delay(1000);
 }
 
 void setUpLEDs() {
@@ -53,12 +102,25 @@ void setUpLEDs() {
   pinMode(LED5, OUTPUT);
 }
 
+void setUpCamBien() {
+  pinMode(HONGNGOAI, INPUT);
+  pinMode(ANHSANG, INPUT);
+}
+
 void triggerLEDs(int status) {
   digitalWrite(LED1, status);
   digitalWrite(LED2, status);
   digitalWrite(LED3, status);
   digitalWrite(LED4, status);
   digitalWrite(LED5, status);
+}
+
+int readHongNgoai() {
+  return digitalRead(HONGNGOAI) == LOW ? HIGH : LOW;  // có người thì 1, ngược lại là 0
+}
+
+int readAnhSang() {
+  return analogRead(ANHSANG);  // đo độ sáng
 }
 
 void readDS1307() {
