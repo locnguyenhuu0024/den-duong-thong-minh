@@ -21,6 +21,7 @@ const byte NumberOfFields = 7;
 
 /* khai báo các biến thời gian */
 int second, minute, hour, day, wday, month, year;
+int gioBatDen = 18;
 
 // Khai báo biến chứa data doc từ nodemcu
 int masterData = 0;
@@ -32,9 +33,10 @@ int hongNgoai = LOW;
 
 // Bien Hong ngoai
 int anhSang = 0;
+int troiToi = 600;
 
 // Điều khiển thủ công
-bool autoMode = false;
+bool autoMode = true;
 
 void setup() {
   Wire.begin();
@@ -53,26 +55,24 @@ void loop() {
   anhSang = readAnhSang();
   masterData = Serial.read();
 
-  Serial.println(masterData);
   // Điều khiển bằng button
   if (masterData == 3) {
     Serial.println("Auto mode: ON");
-    autoMode = true;  // Đổi trạng thái điều khiển thủ công
+    autoMode = true;
   } else if (masterData == 2) {
     Serial.println("Auto mode: OFF");
-    autoMode = false;  // Đổi trạng thái điều khiển thủ công
+    autoMode = false;
   }
 
   if (autoMode) {
-    if (anhSang > 600) {
-
+    if (anhSang > troiToi) {
       Serial.println("Trời tối");
-      if ((hour >= 18 || hour <= 6) && minute >= 0) {
+      if ((hour >= gioBatDen || hour <= 6) && minute >= 0) {
         statusLEDs = HIGH;
       } else {
         if (hongNgoai == HIGH) {
-          // Serial.println("Có người");
-          statusLEDs = HIGH;  // Bật đèn khi có chuyển động
+          Serial.println("Có người");
+          statusLEDs = HIGH;
         } else {
           statusLEDs = LOW;
         }
